@@ -6,7 +6,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext.jsx";
 import Landing from "./pages/Landing.jsx";
 import Auth from "./pages/Auth.jsx";
 import Dashboard from "./components/Dashboard.jsx";
-import Library from "./pages/library.jsx";
+import Library from "./pages/Library.jsx";
+
 import Flashcards from "./pages/Flashcards.jsx";
 import Quizzes from "./pages/Quizzes.jsx";
 import Courses from "./pages/Courses.jsx";
