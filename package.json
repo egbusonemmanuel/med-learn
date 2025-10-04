@@ -21,6 +21,7 @@
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "@supabase/supabase-js": "^2.57.2",
+    "axios": "^1.12.2",
     "cohere-ai": "^7.18.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
