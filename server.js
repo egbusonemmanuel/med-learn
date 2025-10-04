@@ -15,6 +15,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import { Readable } from "stream";
 import { GridFSBucket } from "mongodb";
+import path from "path";
 
 // Routes
 import adminRoutes from "./routes/admin.js";
@@ -74,7 +75,7 @@ mongoose.connection.on("error", (err) => {
 });
 
 // =====================
-// Routes
+// API Routes
 // =====================
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
@@ -127,7 +128,7 @@ app.get("/api/courses", async (req, res) => {
 });
 
 // =====================
-// Library
+// Library (GridFS uploads)
 // =====================
 app.post("/api/library/upload", upload.single("file"), async (req, res) => {
   try {
@@ -183,6 +184,15 @@ app.get("/api/groups", async (req, res) => {
 });
 
 // =====================
+// Serve frontend (Vite/React)
+// =====================
+app.use(express.static(path.join(path.resolve(), "dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(path.resolve(), "dist", "index.html"));
+});
+
+// =====================
 // Start server
 // =====================
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
