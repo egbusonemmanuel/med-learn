@@ -1,6 +1,7 @@
+// src/routes/quizzes.js
 import express from "express";
 import Quiz from "../models/Quiz.js";
-import QuizResult from "../models/Quizresult.js";
+import QuizResult from "../models/QuizResult.js"; // FIXED case
 import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
@@ -11,7 +12,7 @@ const router = express.Router();
 // ========== Upload handler ==========
 const upload = multer({ storage: multer.memoryStorage() });
 
-// AI client
+// ========== AI client ==========
 const aiClient = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
@@ -24,6 +25,7 @@ router.get("/", async (req, res) => {
     const quizzes = await Quiz.find().sort({ createdAt: -1 });
     res.json(quizzes);
   } catch (err) {
+    console.error("Failed to fetch quizzes:", err);
     res.status(500).json({ error: "Failed to fetch quizzes" });
   }
 });
@@ -59,7 +61,7 @@ router.post("/generate", async (req, res) => {
     await quiz.save();
     res.json(quiz);
   } catch (err) {
-    console.error("Quiz gen error:", err);
+    console.error("Quiz generation error:", err);
     res.status(500).json({ error: "Failed to generate quiz" });
   }
 });
@@ -69,6 +71,8 @@ router.post("/generate", async (req, res) => {
 // ====================
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
     const data = JSON.parse(req.file.buffer.toString());
 
     const quiz = new Quiz({
@@ -81,6 +85,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
     await quiz.save();
     res.json(quiz);
   } catch (err) {
+    console.error("Quiz upload error:", err);
     res.status(500).json({ error: "Failed to upload quiz" });
   }
 });
@@ -100,6 +105,7 @@ router.post("/submit", async (req, res) => {
 
     res.json(result);
   } catch (err) {
+    console.error("Quiz result submission error:", err);
     res.status(500).json({ error: "Failed to submit quiz result" });
   }
 });
@@ -115,6 +121,7 @@ router.get("/results/:userId", async (req, res) => {
 
     res.json(results);
   } catch (err) {
+    console.error("Fetch results error:", err);
     res.status(500).json({ error: "Failed to fetch results" });
   }
 });
