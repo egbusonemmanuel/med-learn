@@ -1,41 +1,37 @@
 // src/lib/api.js
 
-// Base URL from Vite env
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
-
-// Fetch profile
+// Example: fetch profile
 export async function fetchProfile() {
-  const res = await fetch(`${BASE_URL}/api/users/profile`, { credentials: "include" });
+  const res = await fetch("http://localhost:4000/api/profile");
   if (!res.ok) throw new Error("Failed to fetch profile");
   return res.json();
 }
 
-// Fetch user stats
+// Example: fetch user stats
 export async function fetchUserStats(userId) {
-  const res = await fetch(`${BASE_URL}/api/users/${userId}/stats`);
+  const res = await fetch(`http://localhost:4000/api/stats/${userId}`);
   if (!res.ok) throw new Error("Failed to fetch stats");
   return res.json();
 }
 
-// Fetch leaderboard
+// ✅ Add missing fetchLeaderboard
 export async function fetchLeaderboard(limit = 10) {
-  const res = await fetch(`${BASE_URL}/api/leaderboard?limit=${limit}`);
+  const res = await fetch(`http://localhost:4000/api/leaderboard?limit=${limit}`);
   if (!res.ok) throw new Error("Failed to fetch leaderboard");
   return res.json();
 }
 
-// Fetch library items
+// (Optional) If you also use library features
 export async function fetchLibraryItems() {
-  const res = await fetch(`${BASE_URL}/api/library`);
+  const res = await fetch("http://localhost:4000/api/library");
   if (!res.ok) throw new Error("Failed to fetch library items");
   return res.json();
 }
 
-// Upload library item
 export async function uploadLibraryItem(formData) {
-  const res = await fetch(`${BASE_URL}/api/library/upload`, {
+  const res = await fetch("http://localhost:4000/api/library", {
     method: "POST",
-    body: formData,
+    body: formData, // 🚀 send FormData directly
   });
   if (!res.ok) {
     const err = await res.text();
