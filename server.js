@@ -16,15 +16,26 @@ import morgan from "morgan";
 import { Readable } from "stream";
 import { GridFSBucket } from "mongodb";
 import path from "path";
+import { fileURLToPath } from "url";
 
+// =====================
+// Helpers for __dirname in ES module
+// =====================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// =====================
 // Routes
+// =====================
 import adminRoutes from "./routes/admin.js";
 import userRoutes from "./routes/users.js";
 import quizRoutes from "./routes/quizzes.js";
 import competitionRoutes from "./routes/competitions.js";
 import examRoutes from "./routes/exams.js";
 
+// =====================
 // Models
+// =====================
 import Course from "./models/Course.js";
 import Flashcard from "./models/Flashcard.js";
 import Leaderboard from "./models/leaderboard.js";
@@ -186,10 +197,11 @@ app.get("/api/groups", async (req, res) => {
 // =====================
 // Serve frontend (Vite/React)
 // =====================
-app.use(express.static(path.join(path.resolve(), "dist")));
+app.use(express.static(path.join(__dirname, "dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(path.resolve(), "dist", "index.html"));
+// Regex wildcard for SPA routing (fixes PathError)
+app.get(/^\/.*$/, (req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // =====================
