@@ -1,41 +1,49 @@
 // src/lib/api.js
 
-// Example: fetch profile
+// ✅ Dynamic base URL from .env (for deployment)
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
+// ✅ Helper: fetch wrapper for cleaner error handling
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+// =====================
+// Profile
+// =====================
 export async function fetchProfile() {
-  const res = await fetch("http://localhost:4000/api/profile");
-  if (!res.ok) throw new Error("Failed to fetch profile");
-  return res.json();
+  return safeFetch(`${BASE_URL}/api/profile`);
 }
 
-// Example: fetch user stats
+// =====================
+// User Stats
+// =====================
 export async function fetchUserStats(userId) {
-  const res = await fetch(`http://localhost:4000/api/stats/${userId}`);
-  if (!res.ok) throw new Error("Failed to fetch stats");
-  return res.json();
+  return safeFetch(`${BASE_URL}/api/stats/${userId}`);
 }
 
-// ✅ Add missing fetchLeaderboard
+// =====================
+// Leaderboard
+// =====================
 export async function fetchLeaderboard(limit = 10) {
-  const res = await fetch(`http://localhost:4000/api/leaderboard?limit=${limit}`);
-  if (!res.ok) throw new Error("Failed to fetch leaderboard");
-  return res.json();
+  return safeFetch(`${BASE_URL}/api/leaderboard?limit=${limit}`);
 }
 
-// (Optional) If you also use library features
+// =====================
+// Library
+// =====================
 export async function fetchLibraryItems() {
-  const res = await fetch("http://localhost:4000/api/library");
-  if (!res.ok) throw new Error("Failed to fetch library items");
-  return res.json();
+  return safeFetch(`${BASE_URL}/api/library`);
 }
 
 export async function uploadLibraryItem(formData) {
-  const res = await fetch("http://localhost:4000/api/library", {
+  return safeFetch(`${BASE_URL}/api/library/upload`, {
     method: "POST",
-    body: formData, // 🚀 send FormData directly
+    body: formData,
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
-  return res.json();
 }
