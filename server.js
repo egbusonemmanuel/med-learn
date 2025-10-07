@@ -53,12 +53,7 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 // =====================
 app.use(helmet());
 app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 app.use(express.json({ limit: "6mb" }));
 app.use(express.urlencoded({ extended: true, limit: "6mb" }));
 
@@ -76,19 +71,18 @@ const upload = multer({
 const mongoURI = process.env.MONGO_URI;
 let gridFSBucket = null;
 
-mongoose
-  .connect(mongoURI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1);
-  });
+mongoose.connect(mongoURI).catch((err) => {
+  console.error("MongoDB connection error:", err);
+  process.exit(1);
+});
 
 mongoose.connection.once("open", () => {
-  gridFSBucket = new GridFSBucket(mongoose.connection.db, {
-    bucketName: "uploads",
-  });
-  console.log("📦 GridFS ready");
+  gridFSBucket = new GridFSBucket(mongoose.connection.db, { bucketName: "uploads" });
+  console.log("✅ MongoDB connected & GridFS ready");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("MongoDB connection error:", err);
 });
 
 // =====================
@@ -104,7 +98,6 @@ app.use("/api/exams", examRoutes);
 // Flashcards
 // =====================
 const flashcardRouter = express.Router();
-
 flashcardRouter.get("/", async (req, res) => {
   try {
     const cards = await Flashcard.find();
@@ -113,7 +106,6 @@ flashcardRouter.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch flashcards" });
   }
 });
-
 flashcardRouter.post("/", async (req, res) => {
   try {
     const { front, back, topic } = req.body;
@@ -124,7 +116,6 @@ flashcardRouter.post("/", async (req, res) => {
     res.status(500).json({ error: "Failed to add flashcard" });
   }
 });
-
 flashcardRouter.delete("/:id", async (req, res) => {
   try {
     await Flashcard.findByIdAndDelete(req.params.id);
@@ -133,7 +124,6 @@ flashcardRouter.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete flashcard" });
   }
 });
-
 app.use("/api/flashcards", flashcardRouter);
 
 // =====================
@@ -154,8 +144,7 @@ app.get("/api/courses", async (req, res) => {
 app.post("/api/library/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-    if (!gridFSBucket)
-      return res.status(500).json({ error: "GridFS not initialized" });
+    if (!gridFSBucket) return res.status(500).json({ error: "GridFS not initialized" });
 
     const readableStream = Readable.from(req.file.buffer);
     const uploadStream = gridFSBucket.openUploadStream(req.file.originalname, {
@@ -172,8 +161,7 @@ app.post("/api/library/upload", upload.single("file"), async (req, res) => {
 
 app.get("/api/library", async (req, res) => {
   try {
-    if (!gridFSBucket)
-      return res.status(500).json({ error: "GridFS not initialized" });
+    if (!gridFSBucket) return res.status(500).json({ error: "GridFS not initialized" });
     const cursor = gridFSBucket.find({});
     const files = await cursor.toArray();
     res.json(files);
@@ -211,13 +199,12 @@ app.get("/api/groups", async (req, res) => {
 // =====================
 app.use(express.static(path.join(__dirname, "dist")));
 
-app.get("*", (req, res) => {
+// Regex wildcard for SPA routing (fixes PathError)
+app.get(/^\/.*$/, (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
 // =====================
 // Start server
 // =====================
-app.listen(PORT, () =>
-  console.log(`🚀 Server running at http://localhost:${PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
