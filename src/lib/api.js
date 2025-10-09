@@ -1,12 +1,14 @@
-// ================================
-// 🌐 API CONFIGURATION
-// ================================
+// =======================================
+// 🌐 API CONFIGURATION — PRODUCTION READY
+// =======================================
 
 // Load API base URL from environment variable
-const BASE_URL = import.meta.env.VITE_API_URL;
+// ⚠️ Make sure your .env (on Vercel) has:
+// VITE_API_URL=https://med-learn-backend.onrender.com
+const BASE_URL = import.meta.env.VITE_API_URL?.trim().replace(/\/$/, "");
 console.log("🌐 Using API Base URL:", BASE_URL);
 
-// Helper: Safe fetch wrapper for error handling
+// Helper: Safe fetch wrapper with error handling
 async function safeFetch(url, options = {}) {
   try {
     const response = await fetch(url, options);
@@ -21,9 +23,9 @@ async function safeFetch(url, options = {}) {
   }
 }
 
-// ================================
+// =======================================
 // 👤 USER / AUTH ENDPOINTS
-// ================================
+// =======================================
 
 // ✅ Fetch user profile
 export async function fetchUserProfile() {
@@ -54,6 +56,10 @@ export async function submitQuiz(quizId, answers, userEmail) {
   });
 }
 
+// =======================================
+// 🧠 FLASHCARDS
+// =======================================
+
 // ✅ Fetch all flashcards
 export async function fetchFlashcards() {
   return safeFetch(`${BASE_URL}/api/flashcards`);
@@ -61,12 +67,23 @@ export async function fetchFlashcards() {
 
 // ✅ Create a new flashcard
 export async function createFlashcard(data) {
-  return safeFetch(`${BASE_URL}/api/flashcards/create`, {
+  return safeFetch(`${BASE_URL}/api/flashcards`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
+
+// ✅ Delete a flashcard
+export async function deleteFlashcard(id) {
+  return safeFetch(`${BASE_URL}/api/flashcards/${id}`, {
+    method: "DELETE",
+  });
+}
+
+// =======================================
+// 🏆 COMPETITIONS
+// =======================================
 
 // ✅ Fetch all competitions
 export async function fetchCompetitions() {
@@ -91,16 +108,16 @@ export async function submitCompetitionResult(competitionId, userEmail, score) {
   });
 }
 
-// ================================
-// 📚 LIBRARY ENDPOINTS
-// ================================
+// =======================================
+// 📚 LIBRARY (FILE UPLOADS / MATERIALS)
+// =======================================
 
-// ✅ Fetch library items (uploaded files, courses, etc.)
+// ✅ Fetch library items
 export async function fetchLibraryItems() {
   return safeFetch(`${BASE_URL}/api/library`);
 }
 
-// ✅ Upload a new library item (e.g., file, course material)
+// ✅ Upload a new library item
 export async function uploadLibraryItem(formData) {
   const res = await fetch(`${BASE_URL}/api/library/upload`, {
     method: "POST",
@@ -113,9 +130,9 @@ export async function uploadLibraryItem(formData) {
   return res.json().catch(() => ({}));
 }
 
-// ================================
+// =======================================
 // ⚙️ ADMIN ENDPOINTS
-// ================================
+// =======================================
 
 // ✅ Check if user is an admin
 export async function checkAdmin(email) {
@@ -140,9 +157,9 @@ export async function deleteUser(email) {
   });
 }
 
-// ================================
-// 🚀 EXPORTS
-// ================================
+// =======================================
+// 🚀 EXPORT EVERYTHING
+// =======================================
 export default {
   fetchUserProfile,
   fetchLeaderboard,
@@ -151,6 +168,7 @@ export default {
   submitQuiz,
   fetchFlashcards,
   createFlashcard,
+  deleteFlashcard,
   fetchCompetitions,
   joinCompetition,
   submitCompetitionResult,
