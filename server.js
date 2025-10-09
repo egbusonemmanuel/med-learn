@@ -47,13 +47,23 @@ import Group from "./models/Group.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || "development";
-
 // =====================
 // Middleware
 // =====================
 app.use(helmet());
 app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+
+app.use(
+  cors({
+    origin: [
+      "https://med-learn-frontend.vercel.app", // your Vercel frontend
+      "http://localhost:5173",                 // local dev
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json({ limit: "6mb" }));
 app.use(express.urlencoded({ extended: true, limit: "6mb" }));
 

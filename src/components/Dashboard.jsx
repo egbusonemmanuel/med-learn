@@ -35,7 +35,8 @@ import {
   Lock,
   User,
 } from "lucide-react";
-import { fetchProfile, fetchUserStats, fetchLeaderboard } from "../lib/api";
+import { fetchUserProfile as fetchProfile } from "../lib/api";
+
 
 /* ============================
    Inject self-contained CSS for background animations
