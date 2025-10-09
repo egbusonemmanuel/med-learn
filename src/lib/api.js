@@ -1,34 +1,99 @@
-// src/lib/api.js
+// ================================
+// 🌐 API CONFIGURATION
+// ================================
 
-// ✅ Automatically detects correct backend URL
-// Uses .env variable if provided, otherwise uses the current site origin
-const BASE_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || window.location.origin;
+// Load API base URL from environment variable
+const BASE_URL = import.meta.env.VITE_API_URL;
+console.log("🌐 Using API Base URL:", BASE_URL);
 
-// ✅ Safe wrapper for all fetch requests
+// Helper: Safe fetch wrapper for error handling
 async function safeFetch(url, options = {}) {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(msg || `Request failed: ${res.status}`);
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `Request failed: ${response.status}`);
+    }
+    return await response.json();
+  } catch (err) {
+    console.error("❌ API Error:", err.message);
+    throw err;
   }
-  return res.json();
 }
 
-// ✅ Fetch current user profile
-export async function fetchProfile() {
+// ================================
+// 👤 USER / AUTH ENDPOINTS
+// ================================
+
+// ✅ Fetch user profile
+export async function fetchUserProfile() {
   return safeFetch(`${BASE_URL}/api/profile`);
-}
-
-// ✅ Fetch user statistics by user ID
-export async function fetchUserStats(userId) {
-  return safeFetch(`${BASE_URL}/api/stats/${userId}`);
 }
 
 // ✅ Fetch leaderboard (default 10 users)
 export async function fetchLeaderboard(limit = 10) {
   return safeFetch(`${BASE_URL}/api/leaderboard?limit=${limit}`);
 }
+
+// ✅ Fetch user courses
+export async function fetchCourses() {
+  return safeFetch(`${BASE_URL}/api/courses`);
+}
+
+// ✅ Fetch quizzes
+export async function fetchQuizzes() {
+  return safeFetch(`${BASE_URL}/api/quizzes`);
+}
+
+// ✅ Submit a quiz
+export async function submitQuiz(quizId, answers, userEmail) {
+  return safeFetch(`${BASE_URL}/api/quizzes/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ quizId, answers, email: userEmail }),
+  });
+}
+
+// ✅ Fetch all flashcards
+export async function fetchFlashcards() {
+  return safeFetch(`${BASE_URL}/api/flashcards`);
+}
+
+// ✅ Create a new flashcard
+export async function createFlashcard(data) {
+  return safeFetch(`${BASE_URL}/api/flashcards/create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+// ✅ Fetch all competitions
+export async function fetchCompetitions() {
+  return safeFetch(`${BASE_URL}/api/competitions`);
+}
+
+// ✅ Join competition
+export async function joinCompetition(competitionId, userEmail) {
+  return safeFetch(`${BASE_URL}/api/competitions/join`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ competitionId, email: userEmail }),
+  });
+}
+
+// ✅ Submit competition result
+export async function submitCompetitionResult(competitionId, userEmail, score) {
+  return safeFetch(`${BASE_URL}/api/competitionresult/submit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ competitionId, email: userEmail, score }),
+  });
+}
+
+// ================================
+// 📚 LIBRARY ENDPOINTS
+// ================================
 
 // ✅ Fetch library items (uploaded files, courses, etc.)
 export async function fetchLibraryItems() {
@@ -47,4 +112,51 @@ export async function uploadLibraryItem(formData) {
   }
   return res.json().catch(() => ({}));
 }
-console.log("🌐 Using API Base URL:", BASE_URL);
+
+// ================================
+// ⚙️ ADMIN ENDPOINTS
+// ================================
+
+// ✅ Check if user is an admin
+export async function checkAdmin(email) {
+  return safeFetch(`${BASE_URL}/api/admin/check`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+// ✅ Fetch all users (admin)
+export async function fetchAllUsers() {
+  return safeFetch(`${BASE_URL}/api/admin/users`);
+}
+
+// ✅ Delete a user (admin)
+export async function deleteUser(email) {
+  return safeFetch(`${BASE_URL}/api/admin/delete`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+}
+
+// ================================
+// 🚀 EXPORTS
+// ================================
+export default {
+  fetchUserProfile,
+  fetchLeaderboard,
+  fetchCourses,
+  fetchQuizzes,
+  submitQuiz,
+  fetchFlashcards,
+  createFlashcard,
+  fetchCompetitions,
+  joinCompetition,
+  submitCompetitionResult,
+  fetchLibraryItems,
+  uploadLibraryItem,
+  checkAdmin,
+  fetchAllUsers,
+  deleteUser,
+};
