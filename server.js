@@ -57,9 +57,9 @@ app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
 app.use(
   cors({
     origin: [
-      "https://med-learn-frontend.vercel.app", // frontend domain
-      "https://med-learn.vercel.app", // alternate domain
-      "http://localhost:5173", // dev mode
+      "https://med-learn-frontend.vercel.app",
+      "https://med-learn.vercel.app",
+      "http://localhost:5173",
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -211,8 +211,8 @@ app.get("/api/groups", async (req, res) => {
 const distPath = path.join(__dirname, "dist");
 app.use(express.static(distPath));
 
-// ✅ SPA fallback (fixes MIME errors on Vercel)
-app.get("*", (req, res) => {
+// ✅ Fixed route for Express 5
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(distPath, "index.html"));
 });
 
