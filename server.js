@@ -2,7 +2,7 @@
 // Load env variables first
 // =====================
 import dotenv from "dotenv";
-dotenv.config(); // MUST be first
+dotenv.config();
 
 // =====================
 // Imports
@@ -38,7 +38,7 @@ import examRoutes from "./routes/exams.js";
 // =====================
 import Course from "./models/Course.js";
 import Flashcard from "./models/Flashcard.js";
-import Leaderboard from "./models/leaderboard.js";
+import Leaderboard from "./models/Leaderboard.js";
 import Group from "./models/Group.js";
 
 // =====================
@@ -47,6 +47,7 @@ import Group from "./models/Group.js";
 const app = express();
 const PORT = process.env.PORT || 4000;
 const NODE_ENV = process.env.NODE_ENV || "development";
+
 // =====================
 // Middleware
 // =====================
@@ -56,8 +57,9 @@ app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
 app.use(
   cors({
     origin: [
-      "https://med-learn-frontend.vercel.app", // your Vercel frontend
-      "http://localhost:5173",                 // local dev
+      "https://med-learn-frontend.vercel.app", // frontend domain
+      "https://med-learn.vercel.app", // alternate domain
+      "http://localhost:5173", // dev mode
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
@@ -112,7 +114,7 @@ flashcardRouter.get("/", async (req, res) => {
   try {
     const cards = await Flashcard.find();
     res.json(cards);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch flashcards" });
   }
 });
@@ -122,7 +124,7 @@ flashcardRouter.post("/", async (req, res) => {
     const card = new Flashcard({ front, back, topic });
     await card.save();
     res.json(card);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to add flashcard" });
   }
 });
@@ -130,7 +132,7 @@ flashcardRouter.delete("/:id", async (req, res) => {
   try {
     await Flashcard.findByIdAndDelete(req.params.id);
     res.json({ message: "✅ Flashcard deleted" });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to delete flashcard" });
   }
 });
@@ -143,7 +145,7 @@ app.get("/api/courses", async (req, res) => {
   try {
     const courses = await Course.find();
     res.json(courses);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch courses" });
   }
 });
@@ -164,7 +166,7 @@ app.post("/api/library/upload", upload.single("file"), async (req, res) => {
     readableStream.pipe(uploadStream).on("finish", () =>
       res.json({ message: "File uploaded successfully", id: uploadStream.id })
     );
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to upload file" });
   }
 });
@@ -172,10 +174,9 @@ app.post("/api/library/upload", upload.single("file"), async (req, res) => {
 app.get("/api/library", async (req, res) => {
   try {
     if (!gridFSBucket) return res.status(500).json({ error: "GridFS not initialized" });
-    const cursor = gridFSBucket.find({});
-    const files = await cursor.toArray();
+    const files = await gridFSBucket.find({}).toArray();
     res.json(files);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch library files" });
   }
 });
@@ -187,7 +188,7 @@ app.get("/api/leaderboard", async (req, res) => {
   try {
     const leaderboard = await Leaderboard.find().sort({ xp: -1, streak: -1 });
     res.json(leaderboard);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch leaderboard" });
   }
 });
@@ -199,19 +200,20 @@ app.get("/api/groups", async (req, res) => {
   try {
     const groups = await Group.find();
     res.json(groups);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch groups" });
   }
 });
 
 // =====================
-// Serve frontend (Vite/React)
+// Serve frontend (Vite build)
 // =====================
-app.use(express.static(path.join(__dirname, "dist")));
+const distPath = path.join(__dirname, "dist");
+app.use(express.static(distPath));
 
-// Regex wildcard for SPA routing (fixes PathError)
-app.get(/^\/.*$/, (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+// ✅ SPA fallback (fixes MIME errors on Vercel)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(distPath, "index.html"));
 });
 
 // =====================
